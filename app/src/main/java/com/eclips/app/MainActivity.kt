@@ -1,13 +1,13 @@
 package com.eclips.app
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.VpnService
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var connectButton: Button
     private var connected = false
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         connectButton = findViewById(R.id.connectButton)
         val saveButton = findViewById<Button>(R.id.saveButton)
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs = getSharedPreferences("eclips_prefs", MODE_PRIVATE)
         val saved = prefs.getString("config", "") ?: ""
         if (saved.isNotEmpty()) configInput.setText(saved)
 
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 100 && resultCode == RESULT_OK) {
