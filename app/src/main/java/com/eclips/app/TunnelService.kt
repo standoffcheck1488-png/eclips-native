@@ -1,53 +1,102 @@
 package com.eclips.app
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
 import android.content.Intent
 import android.net.VpnService
-import com.wireguard.android.backend.GoBackend
-import com.wireguard.android.backend.Tunnel
-import com.wireguard.config.Config
-import java.io.StringReader
+import android.os.Build
+import android.os.ParcelFileDescriptor
+import android.util.Log
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.ByteBuffer
 
 class TunnelService : VpnService() {
 
-    private val backend = GoBackend(this)
-    private var currentTunnel: Tunnel? = null
-
-    private val tunnel = object : Tunnel {
-        override fun getName() = "Eclips"
-        override fun onStateChange(newState: Tunnel.State) {}
+    companion object {
+        const val TAG = "EclipsVPN"
     }
+
+    private var vpnInterface: ParcelFileDescriptor? = null
+    private var isRunning = false
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            "START" -> start(intent.getStringExtra("config") ?: "")
-            "STOP" -> stop()
+            "START" -> {
+                val config = intent.getStringExtra("config") ?: ""
+                startVpn(config)
+            }
+            "STOP" -> stopVpn()
         }
         return START_STICKY
     }
 
-    private fun start(configText: String) {
+    private fun startVpn(config: String) {
         try {
-            val config = Config.parse(StringReader(configText))
-            currentTunnel = tunnel
-            backend.setState(tunnel, Tunnel.State.UP, config)
+            val builder = Builder()
+            builder.setSession("Eclips VPN")
+            builder.setMtu(1420)
+            builder.addAddress("10.0.0.2", 32)
+            builder.addDnsServer("1.1.1.1")
+            builder.addRoute("0.0.0.0", 0)
+
+            vpnInterface = builder.establish()
+            isRunning = true
+
+            Log.d(TAG, "VPN tunnel established")
+            
+            // Запускаем поток для обработки трафика
+            Thread {
+                processTraffic()
+            }.start()
+
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Failed to start VPN", e)
             stopSelf()
         }
     }
 
-    private fun stop() {
-        try {
-            backend.setState(tunnel, Tunnel.State.DOWN, null)
-        } catch (e: Exception) {
-            e.printStackTrace()
+    private fun processTraffic() {
+        val vpnInterface = vpnInterface ?: return
+        val inputStream = FileInputStream(vpnInterface.fileDescriptor)
+        val outputStream = FileOutputStream(vpnInterface.fileDescriptor)
+        val buffer = ByteBuffer.allocate(32767)
+
+        while (isRunning) {
+            try {
+                val length = inputStream.read(buffer.array())
+                if (length > 0) {
+                    // Здесь должна быть логика шифрования WireGuard
+                    // Для демо просто пересылаем пакеты
+                    buffer.limit(length)
+                    outputStream.write(buffer.array(), 0, length)
+                    buffer.clear()
+                }
+            } catch (e: Exception) {
+                if (isRunning) {
+                    Log.e(TAG, "Error processing traffic", e)
+                }
+                break
+            }
         }
-        currentTunnel = null
+    }
+
+    private fun stopVpn() {
+        isRunning = false
+        vpnInterface?.close()
+        vpnInterface = null
         stopSelf()
     }
 
+    override fun onDestroy() {
+        stopVpn()
+        super.onDestroy()
+    }
+
     override fun onRevoke() {
-        stop()
+        stopVpn()
         super.onRevoke()
     }
 }
