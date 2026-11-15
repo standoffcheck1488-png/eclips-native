@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="24dp"
+    android:background="#0A0A0F">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Eclips"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginTop="40dp"/>
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Не подключено"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/connectButton"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="40dp"
+        android:text="Подключить"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#7C3AED"/>
+
+    <EditText
+        android:id="@+id/configInput"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="32dp"
+        android:gravity="top"
+        android:hint="[Interface]\nPrivateKey = ...\n\n[Peer]\nPublicKey = ...\nEndpoint = ..."
+        android:textColor="#FFFFFF"
+        android:textColorHint="#40FFFFFF"
+        android:background="#14FFFFFF"
+        android:padding="16dp"
+        android:inputType="textMultiLine"
+        android:fontFamily="monospace"
+        android:textSize="13sp"/>
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Сохранить конфиг"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1A1A24"/>
+</LinearLayout>
